@@ -5,6 +5,7 @@
 # Update and install ffmpeg
 echo "Updating package lists and installing ffmpeg..."
 sudo apt-get update -y && sudo apt-get install -y ffmpeg
+sudo apt-get install libasound2-dev
 
 # Check if pip_requirements.txt exists
 if [ -f "pip_requirements.txt" ]; then

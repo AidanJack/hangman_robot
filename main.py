@@ -1,7 +1,7 @@
 from components.hangman import HangmanBoard
 from components.audio_player import VoicePlayer
 
-vp = VoicePlayer("/home/aidan/projects/robot/audio/")
+vp = VoicePlayer("/home/aidan/projects/hangman_robot/audio/")
 game = HangmanBoard(vp, printToTerminal=True)
 vp.load_intro()
 vp.play()
