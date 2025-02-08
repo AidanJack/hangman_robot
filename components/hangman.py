@@ -63,10 +63,14 @@ class HangmanBoard():
             self.printState()
         
         self.vp.play()
+
             
         self.availableLetters.remove(letter)
         return (letter, self.remainingNumGuesses, idx, self.curWordState)
         
+    def getGameState(self):
+        return self.curWordState, self.availableLetters, self.remainingNumGuesses
+    
     def triggerGameOver(self):
         if self.printToTerminal:
             print(f' \n GAME OVER \n The word was {self.curWord}')

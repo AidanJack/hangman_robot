@@ -8,59 +8,51 @@ class DisplayEngine():
         self.center = (self.width // 2, self.height // 2)
         self.screen, self.clock = self.init_window()
         self.font = pygame.font.SysFont(None, 30)
+        self.letter_rects = []
     
     def init_window(self):
         pygame.init()
-        # screen = pygame.display.set_mode((self.width, self.height))
-        screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
-        pygame.mouse.set_visible(False)
+        screen = pygame.display.set_mode((self.width, self.height))
+        # screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+        pygame.mouse.set_visible(True)
         clock = pygame.time.Clock()
         pygame.display.set_caption("Smiley Face")
         return screen, clock
     
-    def test_touch(self, pos):
-        my_rect = pygame.Rect(self.center[0]-50, self.center[1]-50, 100, 100)
-        touched = my_rect.collidepoint(pos)
-        color = (255,0,0) if touched == True else (100,0,0)
-        pygame.draw.rect(self.screen, color, my_rect)
-        
-    def draw_face(self):
-        face_radius = 100
-        eye_radius = 10
-        eye_offset_x = 30
-        eye_offset_y = 40
-        mouth_rect = pygame.Rect(self.center[0] - 50, self.center[1] + 20, 100, 50)
-        
-        # Eyes
-        pygame.draw.circle(self.screen, (255,255,255), (self.center[0] - eye_offset_x, self.center[1] - eye_offset_y), eye_radius)
-        pygame.draw.circle(self.screen, (255,255,255), (self.center[0] + eye_offset_x, self.center[1] - eye_offset_y), eye_radius)
-        
-        # Smile
-        pygame.draw.arc(self.screen, (255,255,255), mouth_rect, math.radians(200), math.radians(340), 3)
-        
-    def draw_gameboard(self, hidden_word, available_letters, num_lives, pos):
+    def check_collisions(self, pos):
+        for rect, letter in self.letter_rects:
+            if rect.collidepoint(pos):
+                return letter
+        return None
+
+
+    def update_display(self, hidden_word, available_letters, num_lives):
         lives_pos = (40,40)
         lives = "X " * (num_lives - 1) + "X" if num_lives > 0 else "GAME OVER"
         self.blit_text(lives, lives_pos, (255,255,255))
         
         #hidden_word = "_ _ _ _ _ _"
+        hidden_word = ''.join(hidden_word)
         self.blit_text(hidden_word, (self.center[0] - 30, self.center[1]), (255,255,255))
         
-        fonts = self.letter_to_font(available_letters, (255,255,255))
-        l_dim = (fonts[0].get_width(), fonts[0].get_height())
 
-        letter_center = (self.center[0], self.center[1] + 80)
-        num_letters = len(available_letters)
         letter_spacing = 15
 
-        line_width = num_letters * l_dim[0] + letter_spacing * (num_letters - 1)
-        starting_point = (letter_center[0] - line_width// 2, letter_center[1])
+        letter_surfaces = [self.font.render(letter, True, (255, 255, 255)) for letter in available_letters]
+        l_dim = (letter_surfaces[0].get_width(), letter_surfaces[0].get_height())
+        line_width = len(letter_surfaces) * l_dim[0] + letter_spacing * (len(letter_surfaces) - 1)
+        container_rect = pygame.Rect(0,0, line_width, l_dim[1])
+        container_rect.center = (self.center[0], self.center[1] + 100)
 
-        self.apply_fonts(fonts, starting_point, letter_spacing)
+        offset = container_rect.left
+        self.letter_rects.clear()
+        for i, l in enumerate(letter_surfaces):
+            rect = l.get_rect(topleft=(offset, container_rect.top))
+            self.letter_rects.append((rect, available_letters[i]))# Store rect for each letter
+            offset += l.get_width() + letter_spacing
+            self.screen.blit(l, rect)
 
-        # text_rect = self.blit_text(available_letters, self.center, (255,255,255))
-        # print(f'widht: {text_rect.get_width()}')
-        # print(text_rect.get_height())
+        
     
     def letter_to_font(self, letters, text_color):
         fonts = []
@@ -75,7 +67,7 @@ class DisplayEngine():
         self.screen.blit(img, pos)
         return img
     
-    def apply_fonts(self,fonts, start, spacing):
+    def apply_fonts(self, fonts, start, spacing):
         cur_x = start[0]
         for f in fonts:
             cur_x += f.get_width() + spacing
